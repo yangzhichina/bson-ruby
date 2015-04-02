@@ -42,8 +42,8 @@ module BSON
     #
     # @since 2.0.0
     def to_bson(encoded = ''.force_encoding(BINARY))
-      encode_with_placeholder_and_null(STRING_ADJUST, encoded) do |encoded|
-        to_bson_string(encoded)
+      encode_with_placeholder_and_null(STRING_ADJUST, encoded) do |enc|
+        to_bson_string(enc)
       end
     end
 

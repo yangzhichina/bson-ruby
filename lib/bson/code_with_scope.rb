@@ -90,9 +90,9 @@ module BSON
     # @since 2.0.0
     def to_bson(encoded = ''.force_encoding(BINARY))
       # -1 because we are removing an extra byte
-      out = encode_with_placeholder_and_null(BSON_ADJUST - 1, encoded) do |encoded|
-        javascript.to_bson(encoded)
-        scope.to_bson(encoded)
+      out = encode_with_placeholder_and_null(BSON_ADJUST - 1, encoded) do |enc|
+        javascript.to_bson(enc)
+        scope.to_bson(enc)
       end
       # an extra null byte has been added; we must remove it
       out.chop!

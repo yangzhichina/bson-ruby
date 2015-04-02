@@ -87,11 +87,11 @@ class BenchTest < Test::Unit::TestCase
     BSON.module_eval <<-EVAL
       module Array
         def to_bson(encoded = ''.force_encoding(BINARY), hint = nil)
-          encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |encoded|
+          encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |enc|
             each_with_index do |value, index|
-              encoded << value.bson_type
-              index.to_s.to_bson_key(encoded)
-              value.to_bson(encoded)
+              enc << value.bson_type
+              index.to_s.to_bson_key(enc)
+              value.to_bson(enc)
             end
           end
         end
@@ -105,15 +105,15 @@ class BenchTest < Test::Unit::TestCase
         @@_BSON_INDEX_SIZE = 1024
         @@_BSON_INDEX_ARRAY = ::Array.new(@@_BSON_INDEX_SIZE){|i| (i.to_s.force_encoding(BINARY) << NULL_BYTE).freeze}.freeze
         def to_bson(encoded = ''.force_encoding(BINARY), hint = nil)
-          encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |encoded|
+          encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |enc|
             each_with_index do |value, index|
-              encoded << value.bson_type
+              enc << value.bson_type
               if index < @@_BSON_INDEX_SIZE
-                encoded << @@_BSON_INDEX_ARRAY[index]
+                enc << @@_BSON_INDEX_ARRAY[index]
               else
-                index.to_s.to_bson_cstring(encoded)
+                index.to_s.to_bson_cstring(enc)
               end
-              value.to_bson(encoded)
+              value.to_bson(enc)
             end
           end
         end
@@ -310,7 +310,7 @@ class BenchTest < Test::Unit::TestCase
   #gain: 0.34
   # rb_symbol_to_bson - no C ext, just benefit from other C ext functions
   def test_ext_rb_symbol_to_bson
-    bson = String.new.force_encoding(BSON::BINARY)
+    #bson = String.new.force_encoding(BSON::BINARY)
     p (benchmark_for_ext(10_000_000, __method__) { :my_symbol.to_bson })
   end
 
@@ -383,11 +383,11 @@ class BenchTest < Test::Unit::TestCase
     BSON.module_eval <<-EVAL
       module Hash
         def to_bson(encoded = ''.force_encoding(BINARY), hint = nil)
-          encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |encoded|
+          encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |enc|
             each do |field, value|
-              encoded << value.bson_type
-              field.to_bson_key(encoded)
-              value.to_bson(encoded)
+              enc << value.bson_type
+              field.to_bson_key(enc)
+              value.to_bson(enc)
             end
           end
         end
@@ -399,11 +399,11 @@ class BenchTest < Test::Unit::TestCase
     BSON.module_eval <<-EVAL
       module Hash
         def to_bson(encoded = ''.force_encoding(BINARY), hint = nil)
-          encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |encoded|
+          encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |enc|
             each do |field, value|
-              encoded << (bson_type = value.bson_type)
-              field.to_bson_key(encoded)
-              value.to_bson(encoded, bson_type)
+              enc << (bson_type = value.bson_type)
+              field.to_bson_key(enc)
+              value.to_bson(enc, bson_type)
             end
           end
         end
@@ -425,8 +425,8 @@ class BenchTest < Test::Unit::TestCase
       end
       module String
         def to_bson(encoded = ''.force_encoding(BINARY), hint = nil)
-          encode_with_placeholder_and_null(STRING_ADJUST, encoded) do |encoded|
-            to_bson_string(encoded)
+          encode_with_placeholder_and_null(STRING_ADJUST, encoded) do |enc|
+            to_bson_string(enc)
           end
         end
       end
@@ -457,11 +457,11 @@ class BenchTest < Test::Unit::TestCase
     BSON.module_eval <<-EVAL
       module Hash
         def to_bson(encoded = ''.force_encoding(BINARY), hint = nil)
-          encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |encoded|
+          encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |enc|
             each do |field, value|
-              encoded << value.bson_type
-              field.to_bson_key(encoded)
-              value.to_bson(encoded)
+              enc << value.bson_type
+              field.to_bson_key(enc)
+              value.to_bson(enc)
             end
           end
         end
@@ -489,19 +489,19 @@ class BenchTest < Test::Unit::TestCase
         end
         def to_bson(encoded = ''.force_encoding(BINARY), hint = nil)
           if size < @@_memo_threshold
-            encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |encoded|
+            encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |enc|
               each do |field, value|
-                encoded << value.bson_type
-                encoded << _memo_set(field) { field.to_bson_key }
-                value.to_bson(encoded)
+                enc << value.bson_type
+                enc << _memo_set(field) { field.to_bson_key }
+                value.to_bson(enc)
               end
             end
           else
-            encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |encoded|
+            encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |enc|
               each do |field, value|
-                encoded << value.bson_type
-                encoded << _memo_fetch(field) { field.to_bson_key }
-                value.to_bson(encoded)
+                enc << value.bson_type
+                enc << _memo_fetch(field) { field.to_bson_key }
+                value.to_bson(enc)
               end
             end
           end
@@ -518,11 +518,11 @@ class BenchTest < Test::Unit::TestCase
           @@_memo_hash[field] = @@_memo_hash.fetch(field) { yield }
         end
         def to_bson(encoded = ''.force_encoding(BINARY), hint = nil)
-          encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |encoded|
+          encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |enc|
             each do |field, value|
-              encoded << value.bson_type
-              encoded << _memo(field) { field.to_bson_key }
-              value.to_bson(encoded)
+              enc << value.bson_type
+              enc << _memo(field) { field.to_bson_key }
+              value.to_bson(enc)
             end
           end
         end
@@ -539,14 +539,14 @@ class BenchTest < Test::Unit::TestCase
       end
       module Hash
         def to_bson(encoded = ''.force_encoding(BINARY), hint = nil)
-          encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |encoded|
+          encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |enc|
             each do |field, value|
-              pos = encoded.bytesize
-              encoded << (bson_type = value.bson_type)
-              field.to_bson_key(encoded)
-              mark = encoded.bytesize
-              value.to_bson(encoded)
-              encoded[pos] = Integer::INT64_TYPE if bson_type == Integer::INT32_TYPE && encoded.bytesize - mark == 8
+              pos = enc.bytesize
+              enc << (bson_type = value.bson_type)
+              field.to_bson_key(enc)
+              mark = enc.bytesize
+              value.to_bson(enc)
+              enc[pos] = Integer::INT64_TYPE if bson_type == Integer::INT32_TYPE && enc.bytesize - mark == 8
             end
           end
         end
@@ -829,7 +829,7 @@ class BenchTest < Test::Unit::TestCase
     allocated = nil
     Benchmark.bm(@label_width) do |bench|
       bench.report(__method__) do
-        result, allocated = gc_allocated do
+        _, allocated = gc_allocated do
           twitter.each {|doc| doc.to_bson }
         end
       end
@@ -842,7 +842,7 @@ class BenchTest < Test::Unit::TestCase
     allocated = nil
     Benchmark.bm(@label_width) do |bench|
       bench.report(__method__) do
-        result, allocated = gc_allocated do
+        _, allocated = gc_allocated do
           twitter = get_twitter_data(-1, true)
         end
       end
@@ -856,7 +856,7 @@ class BenchTest < Test::Unit::TestCase
     profile = nil
     Benchmark.bm(@label_width) do |bench|
       bench.report(label) do
-        result, allocated = gc_allocated do
+        _, allocated = gc_allocated do
           RubyProf.start
           line_limit = yield
           profile = RubyProf.stop

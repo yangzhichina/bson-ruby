@@ -42,11 +42,11 @@ module BSON
     #
     # @since 2.0.0
     def to_bson(encoded = ''.force_encoding(BINARY))
-      encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |encoded|
+      encode_with_placeholder_and_null(BSON_ADJUST, encoded) do |enc|
         each_with_index do |value, index|
-          encoded << value.bson_type
-          index.to_bson_key(encoded)
-          value.to_bson(encoded)
+          enc << value.bson_type
+          index.to_bson_key(enc)
+          value.to_bson(enc)
         end
       end
     end

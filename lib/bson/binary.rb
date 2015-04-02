@@ -131,10 +131,10 @@ module BSON
     #
     # @since 2.0.0
     def to_bson(encoded = ''.force_encoding(BINARY))
-      encode_binary_data_with_placeholder(encoded) do |encoded|
-        encoded << SUBTYPES.fetch(type)
-        encoded << data.bytesize.to_bson if type == :old
-        encoded << data
+      encode_binary_data_with_placeholder(encoded) do |enc|
+        enc << SUBTYPES.fetch(type)
+        enc << data.bytesize.to_bson if type == :old
+        enc << data
       end
     end
 
